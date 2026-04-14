@@ -25,9 +25,8 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Tennis',
     icon: '🎾',
     presets: [
-      { label: 'Full Court (Doubles)', dimensions: { width: 36, length: 78 } },
-      { label: 'Full Court (Singles)', dimensions: { width: 27, length: 78 } },
-      { label: 'Practice Court', dimensions: { width: 36, length: 60 } },
+      { label: 'Standard Court (36\' x 78\')', dimensions: { width: 36, length: 78 } },
+      { label: 'Full Area (60\' x 120\')', dimensions: { width: 60, length: 120 } },
     ],
     defaultPresetIndex: 0,
     defaultColors: {
@@ -41,8 +40,8 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     name: 'Pickleball',
     icon: '🏓',
     presets: [
-      { label: 'Standard Court', dimensions: { width: 20, length: 44 } },
-      { label: 'With Run-Out', dimensions: { width: 30, length: 60 } },
+      { label: 'Standard Court (20\' x 44\')', dimensions: { width: 20, length: 44 } },
+      { label: 'Full Area (30\' x 60\')', dimensions: { width: 30, length: 60 } },
     ],
     defaultPresetIndex: 0,
     defaultColors: {

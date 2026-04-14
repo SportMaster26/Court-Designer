@@ -36,10 +36,13 @@ export interface GameLineConfig {
   color: string;
 }
 
+export type ViewMode = '2d' | '3d';
+
 export interface CourtDesign {
   sport: SportType;
   dimensions: CourtDimensions;
   colors: CourtColors;
   gameLines: GameLineConfig[];
   showDimensions: boolean;
+  viewMode: ViewMode;
 }

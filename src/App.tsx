@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import type { SportType, CourtDesign, CourtDimensions, CourtColors, GameLineConfig } from './types/court';
+import type { SportType, CourtDesign, CourtDimensions, CourtColors, GameLineConfig, ViewMode } from './types/court';
 import { SPORT_CONFIGS } from './constants/courts';
 import SportSelector from './components/SportSelector';
 import DimensionPanel from './components/DimensionPanel';
@@ -32,6 +32,7 @@ function getDefaultDesign(sport: SportType): CourtDesign {
     colors: { ...config.defaultColors },
     gameLines: buildGameLines(sport),
     showDimensions: true,
+    viewMode: '2d',
   };
 }
 
@@ -73,6 +74,10 @@ export default function App() {
 
   const handleToggleDimensions = useCallback(() => {
     setDesign((prev) => ({ ...prev, showDimensions: !prev.showDimensions }));
+  }, []);
+
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setDesign((prev) => ({ ...prev, viewMode: mode }));
   }, []);
 
   const handleReset = useCallback(() => {
@@ -197,7 +202,32 @@ export default function App() {
               {design.dimensions.width}' x {design.dimensions.length}'
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* View mode toggle */}
+            <div className="flex items-center bg-slate-800 rounded-lg p-0.5">
+              <button
+                onClick={() => handleViewModeChange('2d')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  design.viewMode === '2d'
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                2D
+              </button>
+              <button
+                onClick={() => handleViewModeChange('3d')}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  design.viewMode === '3d'
+                    ? 'bg-blue-600 text-white shadow'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                3D
+              </button>
+            </div>
+
+            {/* Color dots */}
             <div className="flex items-center gap-1.5">
               <div
                 className="w-4 h-4 rounded-full border border-slate-600"
