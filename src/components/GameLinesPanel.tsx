@@ -67,16 +67,17 @@ export default function GameLinesPanel({ currentSport, gameLines, onChange }: Pr
 
               {gl.enabled && (
                 <div className="flex flex-wrap gap-1 px-2">
-                  {COLOR_PALETTE.slice(0, 15).map((color) => (
+                  {COLOR_PALETTE.map((color) => (
                     <button
-                      key={color}
-                      onClick={() => changeColor(gl.sport, color)}
+                      key={color.hex}
+                      onClick={() => changeColor(gl.sport, color.hex)}
                       className={`w-4 h-4 rounded-sm border transition-transform hover:scale-125 ${
-                        gl.color === color
+                        gl.color === color.hex
                           ? 'border-white ring-1 ring-blue-400 scale-110'
                           : 'border-slate-600'
                       }`}
-                      style={{ backgroundColor: color }}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
                     />
                   ))}
                 </div>

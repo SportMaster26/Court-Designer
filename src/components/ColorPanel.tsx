@@ -23,7 +23,7 @@ export default function ColorPanel({ colors, onChange }: Props) {
   return (
     <div className="space-y-3">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 px-1">
-        Colors
+        SportMaster Colors
       </h3>
 
       {(Object.keys(COLOR_LABELS) as ColorKey[]).map((key) => (
@@ -43,19 +43,25 @@ export default function ColorPanel({ colors, onChange }: Props) {
               />
             </div>
           </div>
-          <div className="flex flex-wrap gap-1 px-1">
+          <div className="grid grid-cols-3 gap-1 px-1">
             {COLOR_PALETTE.map((color) => (
               <button
-                key={color}
-                onClick={() => handleColorChange(key, color)}
-                className={`w-5 h-5 rounded-sm border transition-transform hover:scale-125 ${
-                  colors[key] === color
-                    ? 'border-white ring-1 ring-blue-400 scale-110'
-                    : 'border-slate-600'
+                key={color.hex}
+                onClick={() => handleColorChange(key, color.hex)}
+                className={`flex items-center gap-1.5 px-1.5 py-1 rounded text-left transition-all ${
+                  colors[key] === color.hex
+                    ? 'bg-slate-700 ring-1 ring-blue-400'
+                    : 'hover:bg-slate-800'
                 }`}
-                style={{ backgroundColor: color }}
-                title={color}
-              />
+              >
+                <div
+                  className="w-4 h-4 rounded-sm border border-slate-600 flex-shrink-0"
+                  style={{ backgroundColor: color.hex }}
+                />
+                <span className="text-[9px] text-slate-400 leading-tight truncate">
+                  {color.name}
+                </span>
+              </button>
             ))}
           </div>
         </div>

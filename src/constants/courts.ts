@@ -84,11 +84,24 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
   },
 };
 
-export const COLOR_PALETTE = [
-  '#C0392B', '#E74C3C', '#E91E63', '#9B59B6', '#8E44AD',
-  '#2980B9', '#3498DB', '#2563EB', '#1ABC9C', '#16A085',
-  '#27AE60', '#2ECC71', '#2D6A2D', '#059669', '#F39C12',
-  '#F1C40F', '#E67E22', '#D35400', '#D97706', '#CD853F',
-  '#795548', '#8B4513', '#B8732D', '#7F8C8D', '#95A5A6',
-  '#34495E', '#2C3E50', '#1E293B', '#FFFFFF', '#000000',
+export const COLOR_PALETTE: { name: string; hex: string }[] = [
+  // SportMaster Standard Colors
+  { name: 'Light Green', hex: '#7AB648' },
+  { name: 'Forest Green', hex: '#2E6B34' },
+  { name: 'Dark Green', hex: '#1B4332' },
+  { name: 'Light Blue', hex: '#5B9BD5' },
+  { name: 'Blue', hex: '#2255A4' },
+  { name: 'Ice Blue', hex: '#A8D8EA' },
+  { name: 'Tournament Purple', hex: '#6A1B9A' },
+  { name: 'Red', hex: '#C62828' },
+  { name: 'Brite Red', hex: '#EF2D2D' },
+  { name: 'Maroon', hex: '#6E1423' },
+  { name: 'Orange', hex: '#E8711E' },
+  { name: 'Yellow', hex: '#F9C622' },
+  { name: 'Sandstone', hex: '#C8A96E' },
+  { name: 'Beige', hex: '#D4C5A9' },
+  { name: 'Dove Gray', hex: '#9E9E9E' },
+  { name: 'Gray', hex: '#6B6B6B' },
+  { name: 'Brown', hex: '#5D4037' },
+  { name: 'Black', hex: '#1A1A1A' },
 ];
