@@ -104,4 +104,5 @@ export const COLOR_PALETTE: { name: string; hex: string }[] = [
   { name: 'Gray', hex: '#6B6B6B' },
   { name: 'Brown', hex: '#5D4037' },
   { name: 'Black', hex: '#1A1A1A' },
+  { name: 'White', hex: '#FFFFFF' },
 ];
