@@ -44,7 +44,7 @@ export default function ColorPanel({ colors, onChange }: Props) {
             </div>
           </div>
           <div className="grid grid-cols-3 gap-1 px-1">
-            {COLOR_PALETTE.map((color) => (
+            {COLOR_PALETTE.filter((c) => key === 'lines' || c.name !== 'White').map((color) => (
               <button
                 key={color.hex}
                 onClick={() => handleColorChange(key, color.hex)}
