@@ -98,6 +98,20 @@ function drawSurroundCourt(
   return { innerX, innerY, innerW, innerH, innerScale: scale };
 }
 
+/** Compute inner court bounds without drawing (for overlays) */
+function getInnerCourtBounds(
+  rc: RenderContext,
+  stdW: number,
+  stdL: number
+): { innerX: number; innerY: number; innerW: number; innerH: number; innerScale: number } {
+  const { courtX, courtY, courtW, courtH, scale } = rc;
+  const innerW = stdW * scale;
+  const innerH = stdL * scale;
+  const innerX = courtX + (courtW - innerW) / 2;
+  const innerY = courtY + (courtH - innerH) / 2;
+  return { innerX, innerY, innerW, innerH, innerScale: scale };
+}
+
 function drawDimensionLabels(rc: RenderContext, design: CourtDesign) {
   if (!design.showDimensions) return;
   const { ctx, courtX, courtY, courtW, courtH } = rc;
@@ -125,7 +139,6 @@ function apply3DTransform(ctx: CanvasRenderingContext2D, canvasWidth: number, ca
   const cx = canvasWidth / 2;
   const cy = canvasHeight * 0.55;
   ctx.translate(cx, cy);
-  // Compress Y and add slight skew for perspective feel
   ctx.transform(1, 0, -0.08, 0.52, 0, 0);
   ctx.translate(-cx, -cy);
 }
@@ -144,10 +157,6 @@ function draw3DEdges(
   const dark = darkenColor(surfaceColor, 60);
   const darker = darkenColor(surfaceColor, 90);
 
-  // We need to project the bottom and right edges of the court from the
-  // 3D-transformed space into screen space to draw the "walls".
-  // Since the transform is: translate(cx,cy) -> matrix(1, 0, -0.08, 0.52, 0, 0) -> translate(-cx,-cy)
-  // We compute projected points manually.
   const cx = canvasWidth / 2;
   const cy = canvasHeight * 0.55;
 
@@ -229,7 +238,7 @@ function draw3DShadow(
 // BASKETBALL
 // ============================================
 
-function drawBasketball(rc: RenderContext, design: CourtDesign) {
+function drawBasketball(rc: RenderContext, design: CourtDesign, isOverlay = false) {
   const { ctx, courtX, courtY, courtW, courtH, scale } = rc;
   const lineColor = design.colors.lines;
   const secondaryColor = design.colors.secondary;
@@ -250,8 +259,10 @@ function drawBasketball(rc: RenderContext, design: CourtDesign) {
     const keyY = courtY + courtH - keyH;
 
     // Paint/key area
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(keyX, keyY, keyW, keyH);
+    if (!isOverlay) {
+      ctx.fillStyle = secondaryColor;
+      ctx.fillRect(keyX, keyY, keyW, keyH);
+    }
     ctx.strokeRect(keyX, keyY, keyW, keyH);
 
     // Free throw circle
@@ -324,8 +335,10 @@ function drawBasketball(rc: RenderContext, design: CourtDesign) {
       const keyX = courtX + (courtW - keyW) / 2;
       const keyY = end === 0 ? baseY - keyH : baseY;
 
-      ctx.fillStyle = secondaryColor;
-      ctx.fillRect(keyX, keyY, keyW, keyH);
+      if (!isOverlay) {
+        ctx.fillStyle = secondaryColor;
+        ctx.fillRect(keyX, keyY, keyW, keyH);
+      }
       ctx.strokeStyle = lineColor;
       ctx.strokeRect(keyX, keyY, keyW, keyH);
 
@@ -388,7 +401,7 @@ function drawBasketball(rc: RenderContext, design: CourtDesign) {
 // TENNIS (with outside area support)
 // ============================================
 
-function drawTennis(rc: RenderContext, design: CourtDesign) {
+function drawTennis(rc: RenderContext, design: CourtDesign, isOverlay = false) {
   const { ctx, scale } = rc;
   const lineColor = design.colors.lines;
   const secondaryColor = design.colors.secondary;
@@ -400,18 +413,16 @@ function drawTennis(rc: RenderContext, design: CourtDesign) {
   let cx: number, cy: number, cw: number, ch: number, s: number;
 
   if (hasSurround) {
-    const inner = drawSurroundCourt(rc, design, std.width, std.length);
-    cx = inner.innerX;
-    cy = inner.innerY;
-    cw = inner.innerW;
-    ch = inner.innerH;
-    s = inner.innerScale;
+    if (isOverlay) {
+      // Overlay: just compute bounds, don't paint surface
+      const inner = getInnerCourtBounds(rc, std.width, std.length);
+      cx = inner.innerX; cy = inner.innerY; cw = inner.innerW; ch = inner.innerH; s = inner.innerScale;
+    } else {
+      const inner = drawSurroundCourt(rc, design, std.width, std.length);
+      cx = inner.innerX; cy = inner.innerY; cw = inner.innerW; ch = inner.innerH; s = inner.innerScale;
+    }
   } else {
-    cx = rc.courtX;
-    cy = rc.courtY;
-    cw = rc.courtW;
-    ch = rc.courtH;
-    s = scale;
+    cx = rc.courtX; cy = rc.courtY; cw = rc.courtW; ch = rc.courtH; s = scale;
   }
 
   ctx.strokeStyle = lineColor;
@@ -422,14 +433,15 @@ function drawTennis(rc: RenderContext, design: CourtDesign) {
 
   // Doubles court - singles sidelines
   const singlesInset = 4.5 * s;
-
   const netY = cy + ch / 2;
   const serviceLineOffset = 21 * s;
 
-  // Fill service boxes
-  ctx.fillStyle = secondaryColor;
-  ctx.fillRect(cx + singlesInset, netY - serviceLineOffset,
-    cw - singlesInset * 2, serviceLineOffset * 2);
+  // Fill service boxes (skip for overlays)
+  if (!isOverlay) {
+    ctx.fillStyle = secondaryColor;
+    ctx.fillRect(cx + singlesInset, netY - serviceLineOffset,
+      cw - singlesInset * 2, serviceLineOffset * 2);
+  }
 
   ctx.strokeStyle = lineColor;
 
@@ -492,7 +504,7 @@ function drawTennis(rc: RenderContext, design: CourtDesign) {
 // PICKLEBALL (with outside area support)
 // ============================================
 
-function drawPickleball(rc: RenderContext, design: CourtDesign) {
+function drawPickleball(rc: RenderContext, design: CourtDesign, isOverlay = false) {
   const { ctx, scale } = rc;
   const lineColor = design.colors.lines;
   const secondaryColor = design.colors.secondary;
@@ -504,18 +516,15 @@ function drawPickleball(rc: RenderContext, design: CourtDesign) {
   let cx: number, cy: number, cw: number, ch: number, s: number;
 
   if (hasSurround) {
-    const inner = drawSurroundCourt(rc, design, std.width, std.length);
-    cx = inner.innerX;
-    cy = inner.innerY;
-    cw = inner.innerW;
-    ch = inner.innerH;
-    s = inner.innerScale;
+    if (isOverlay) {
+      const inner = getInnerCourtBounds(rc, std.width, std.length);
+      cx = inner.innerX; cy = inner.innerY; cw = inner.innerW; ch = inner.innerH; s = inner.innerScale;
+    } else {
+      const inner = drawSurroundCourt(rc, design, std.width, std.length);
+      cx = inner.innerX; cy = inner.innerY; cw = inner.innerW; ch = inner.innerH; s = inner.innerScale;
+    }
   } else {
-    cx = rc.courtX;
-    cy = rc.courtY;
-    cw = rc.courtW;
-    ch = rc.courtH;
-    s = scale;
+    cx = rc.courtX; cy = rc.courtY; cw = rc.courtW; ch = rc.courtH; s = scale;
   }
 
   ctx.strokeStyle = lineColor;
@@ -528,9 +537,11 @@ function drawPickleball(rc: RenderContext, design: CourtDesign) {
   const netY = cy + ch / 2;
   const kitchenDepth = 7 * s;
 
-  // Kitchen zones
-  ctx.fillStyle = secondaryColor;
-  ctx.fillRect(cx, netY - kitchenDepth, cw, kitchenDepth * 2);
+  // Kitchen zones (skip fill for overlays)
+  if (!isOverlay) {
+    ctx.fillStyle = secondaryColor;
+    ctx.fillRect(cx, netY - kitchenDepth, cw, kitchenDepth * 2);
+  }
 
   ctx.strokeStyle = lineColor;
 
@@ -576,7 +587,7 @@ function drawPickleball(rc: RenderContext, design: CourtDesign) {
 // VOLLEYBALL
 // ============================================
 
-function drawVolleyball(rc: RenderContext, design: CourtDesign) {
+function drawVolleyball(rc: RenderContext, design: CourtDesign, isOverlay = false) {
   const { ctx, courtX, courtY, courtW, courtH, scale } = rc;
   const lineColor = design.colors.lines;
   const secondaryColor = design.colors.secondary;
@@ -589,8 +600,10 @@ function drawVolleyball(rc: RenderContext, design: CourtDesign) {
   const netY = courtY + courtH / 2;
   const attackLineOffset = 10 * scale;
 
-  ctx.fillStyle = secondaryColor;
-  ctx.fillRect(courtX, netY - attackLineOffset, courtW, attackLineOffset * 2);
+  if (!isOverlay) {
+    ctx.fillStyle = secondaryColor;
+    ctx.fillRect(courtX, netY - attackLineOffset, courtW, attackLineOffset * 2);
+  }
 
   ctx.strokeStyle = lineColor;
 
@@ -631,7 +644,7 @@ function drawVolleyball(rc: RenderContext, design: CourtDesign) {
 // BADMINTON
 // ============================================
 
-function drawBadminton(rc: RenderContext, design: CourtDesign) {
+function drawBadminton(rc: RenderContext, design: CourtDesign, isOverlay = false) {
   const { ctx, courtX, courtY, courtW, courtH, scale } = rc;
   const lineColor = design.colors.lines;
   const secondaryColor = design.colors.secondary;
@@ -646,8 +659,10 @@ function drawBadminton(rc: RenderContext, design: CourtDesign) {
   const netY = courtY + courtH / 2;
   const shortServiceOffset = 6.5 * scale;
 
-  ctx.fillStyle = secondaryColor;
-  ctx.fillRect(courtX, netY - shortServiceOffset, courtW, shortServiceOffset * 2);
+  if (!isOverlay) {
+    ctx.fillStyle = secondaryColor;
+    ctx.fillRect(courtX, netY - shortServiceOffset, courtW, shortServiceOffset * 2);
+  }
 
   ctx.strokeStyle = lineColor;
 
@@ -713,7 +728,7 @@ function drawBadminton(rc: RenderContext, design: CourtDesign) {
 // MAIN RENDER
 // ============================================
 
-const sportRenderers: Record<string, (rc: RenderContext, design: CourtDesign) => void> = {
+const sportRenderers: Record<string, (rc: RenderContext, design: CourtDesign, isOverlay?: boolean) => void> = {
   basketball: drawBasketball,
   tennis: drawTennis,
   pickleball: drawPickleball,
@@ -748,14 +763,9 @@ export function renderCourt(
   const is3D = design.viewMode === '3d';
 
   if (is3D) {
-    // Draw shadow beneath the 3D court
     draw3DShadow(ctx, canvasWidth, canvasHeight, rc.courtX, rc.courtY, rc.courtW, rc.courtH);
-
-    // Draw 3D edge walls before applying transform
     const edgeColor = design.colors.border !== 'transparent' ? design.colors.border : design.colors.primary;
     draw3DEdges(ctx, canvasWidth, canvasHeight, rc.courtX, rc.courtY, rc.courtW, rc.courtH, edgeColor);
-
-    // Apply 3D perspective transform for the court surface
     ctx.save();
     apply3DTransform(ctx, canvasWidth, canvasHeight);
   }
@@ -763,13 +773,13 @@ export function renderCourt(
   // Draw court surface
   drawCourtSurface(rc, design);
 
-  // Draw sport-specific lines
+  // Draw sport-specific lines (not overlay)
   const renderer = sportRenderers[design.sport];
   if (renderer) {
-    renderer(rc, design);
+    renderer(rc, design, false);
   }
 
-  // Draw overlay game lines for multi-sport
+  // Draw overlay game lines for multi-sport (lines only, no surface fills)
   for (const gl of design.gameLines) {
     if (gl.enabled && gl.sport !== design.sport) {
       const overlayDesign: CourtDesign = {
@@ -779,7 +789,7 @@ export function renderCourt(
       const overlayRenderer = sportRenderers[gl.sport];
       if (overlayRenderer) {
         ctx.globalAlpha = 0.6;
-        overlayRenderer(rc, overlayDesign);
+        overlayRenderer(rc, overlayDesign, true);
         ctx.globalAlpha = 1;
       }
     }
